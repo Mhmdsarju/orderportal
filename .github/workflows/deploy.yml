@@ -22,13 +22,13 @@ concurrency:
 jobs:
 
   # 1. BUILD AND PUSH DOCKER IMAGE
-  
+
 
   build-and-push:
 
     name: Build ${{ matrix.service }}
 
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
 
     strategy:
       fail-fast: false
@@ -80,9 +80,9 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/orderportal-${{ matrix.service }}:latest
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-          
+
   # 2. DEPLOY TO KUBERNETE
-  
+
 
   deploy:
 
