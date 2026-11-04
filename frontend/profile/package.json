@@ -1,0 +1,36 @@
+{
+  "name": "@orderportal/profile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+  "dev": "webpack serve --config webpack.config.cts --mode development",
+  "build": "webpack --config webpack.config.cts --mode production",
+  "typecheck": "tsc --noEmit"
+},
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@reduxjs/toolkit": "^2.2.7",
+    "react-redux": "^9.1.2",
+    "@orderportal/shared-store": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/webpack-env": "^1.18.5",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4",
+    "html-webpack-plugin": "^5.6.0",
+    "ts-node": "^10.9.2",
+    "@types/node": "^20.14.10"
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "Node"
+    }
+  }
+}

@@ -1,0 +1,83 @@
+services:
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    ports: ["27017:27017"]
+    volumes: [mongo_data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orderportal
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orderportal_dev_password}
+      POSTGRES_DB: orderportal_orders
+    ports: ["5433:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderportal -d orderportal_orders"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  user-service:
+    build: ./backend/user-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4001
+      GRPC_PORT: 50051
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      MONGO_URI: mongodb://mongodb:27017/orderportal_users
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3098}
+    depends_on:
+      mongodb: {condition: service_healthy}
+    expose: ["4001", "50051"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  order-service:
+    build: ./backend/order-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4002
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      DATABASE_URL: postgresql://orderportal:${POSTGRES_PASSWORD:-orderportal_dev_password}@postgres:5432/orderportal_orders?schema=public
+      USER_SERVICE_GRPC_URL: user-service:50051
+    depends_on:
+      postgres: {condition: service_healthy}
+      user-service: {condition: service_healthy}
+    expose: ["4002"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4002/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  gateway:
+    build: ./backend/api-gateway
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      USER_SERVICE_URL: http://user-service:4001
+      ORDER_SERVICE_URL: http://order-service:4002
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3098}
+    depends_on:
+      user-service: {condition: service_healthy}
+      order-service: {condition: service_healthy}
+    ports: ["3000:3000"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+volumes:
+  mongo_data:
+  postgres_data:

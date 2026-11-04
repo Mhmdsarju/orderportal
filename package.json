@@ -1,0 +1,24 @@
+{
+  "name": "orderportal",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend/api-gateway",
+    "backend/user-service",
+    "backend/order-service",
+    "frontend/host",
+    "frontend/auth",
+    "frontend/dashboard",
+    "frontend/profile",
+    "frontend/settings",
+    "frontend/shared-store"
+  ],
+  "scripts": {
+    "typecheck:backend": "npm run typecheck --workspace=@orderportal/api-gateway && npm run typecheck --workspace=@orderportal/user-service && npm run typecheck --workspace=@orderportal/order-service",
+    "typecheck:frontend": "npm run typecheck --workspace=@orderportal/host && npm run typecheck --workspace=@orderportal/auth && npm run typecheck --workspace=@orderportal/dashboard && npm run typecheck --workspace=@orderportal/profile && npm run typecheck --workspace=@orderportal/settings && npm run typecheck --workspace=@orderportal/shared-store",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
